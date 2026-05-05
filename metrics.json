@@ -1,0 +1,15 @@
+{
+  "dataset": "Synthetic retail sales dataset",
+  "records": 25000,
+  "unique_customers": 1781,
+  "total_revenue": 5094302.04553022,
+  "forecasting_model": "RandomForestRegressor",
+  "r2_score": 0.8287395538117365,
+  "mae": 1159.5195462132258,
+  "rmse": 1525.4440969599232,
+  "segmentation_model": "KMeans",
+  "optimal_clusters": 3,
+  "silhouette_score": 0.5353489726879973,
+  "outlier_rate": 0.08484,
+  "generated_at": "2026-05-05T13:38:11.594594+00:00"
+}
