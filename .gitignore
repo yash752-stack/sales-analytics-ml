@@ -3,9 +3,12 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 .ipynb_checkpoints
 .DS_Store
 .env
+.pytest_cache/
+.streamlit/
 data/
 models/
 visualizations/

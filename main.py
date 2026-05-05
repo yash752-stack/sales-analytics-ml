@@ -1,52 +1,64 @@
-"""
-Main Execution Script - Runs complete pipeline
-"""
-import os
-import sys
+"""CLI entrypoint for the sales analytics pipeline."""
 
-print("="*70)
-print("  SALES ANALYTICS & FORECASTING WITH MACHINE LEARNING")
-print("="*70)
+from __future__ import annotations
 
-# Create directories
-for directory in ['data/raw', 'data/processed', 'visualizations', 'models', 'src']:
-    os.makedirs(directory, exist_ok=True)
+import argparse
+from textwrap import dedent
 
-# Add src to path
-sys.path.insert(0, 'src')
+from src.config import DEFAULT_RECORDS
+from src.pipeline import run_pipeline
 
-# Step 1: Generate Data
-print("\n" + "="*70)
-print("STEP 1: DATA GENERATION")
-print("="*70)
-exec(open('generate_data.py').read())
 
-# Step 2: Preprocessing
-print("\n" + "="*70)
-print("STEP 2: DATA PREPROCESSING")
-print("="*70)
-from data_preprocessing import preprocess_pipeline
-preprocess_pipeline('data/raw/sales_data.csv', 'data/processed/sales_data_cleaned.csv')
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Run the end-to-end sales analytics and forecasting pipeline."
+    )
+    parser.add_argument(
+        "--records",
+        type=int,
+        default=DEFAULT_RECORDS,
+        help="Number of synthetic retail transactions to generate.",
+    )
+    parser.add_argument(
+        "--skip-previews",
+        action="store_true",
+        help="Skip exporting preview charts to the screenshots directory.",
+    )
+    return parser.parse_args()
 
-# Step 3: Clustering
-print("\n" + "="*70)
-print("STEP 3: CUSTOMER SEGMENTATION")
-print("="*70)
-from clustering import run_segmentation_pipeline
-run_segmentation_pipeline('data/processed/sales_data_cleaned.csv')
 
-# Step 4: Forecasting
-print("\n" + "="*70)
-print("STEP 4: SALES FORECASTING")
-print("="*70)
-from forecasting import run_forecasting_pipeline
-run_forecasting_pipeline('data/processed/sales_data_cleaned.csv')
+def main() -> None:
+    args = parse_args()
+    artifacts = run_pipeline(
+        n_records=args.records,
+        export_previews=not args.skip_previews,
+    )
+    metrics = artifacts["metrics"]
 
-print("\n" + "="*70)
-print("✅ PIPELINE COMPLETE!")
-print("="*70)
-print("\n📁 Check these folders:")
-print("   - data/processed/")
-print("   - visualizations/")
-print("   - models/")
-print("\n🎉 Your project is ready to push to GitHub!")
+    summary = dedent(
+        f"""
+        ==============================================================================
+          SALES ANALYTICS & FORECASTING WITH MACHINE LEARNING
+        ==============================================================================
+
+        Synthetic records generated : {metrics["records"]}
+        Unique customers            : {metrics["unique_customers"]}
+        Revenue forecast model      : {metrics["forecasting_model"]}
+        Forecast R²                 : {metrics["r2_score"]:.3f}
+        K-Means clusters            : {metrics["optimal_clusters"]}
+        Silhouette score            : {metrics["silhouette_score"]:.3f}
+        Outlier rate                : {metrics["outlier_rate"]:.2%}
+
+        Output files
+          - Clean dataset      : {artifacts["processed_path"]}
+          - Customer segments  : {artifacts["segments_path"]}
+          - Forecast output    : {artifacts["forecast_path"]}
+          - Metrics            : {artifacts["metrics_path"]}
+        """
+    ).strip()
+
+    print(summary)
+
+
+if __name__ == "__main__":
+    main()
